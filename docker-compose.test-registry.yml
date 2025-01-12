@@ -1,0 +1,19 @@
+services:
+  registry:
+    image: registry:2
+    container_name: kustos-test-registry
+    ports:
+      - "5000:5000"
+    environment:
+      REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /var/lib/registry
+      REGISTRY_HTTP_ADDR: 0.0.0.0:5000
+      # Disable TLS for local development
+      REGISTRY_HTTP_TLS_CERTIFICATE: ""
+      REGISTRY_HTTP_TLS_KEY: ""
+    volumes:
+      - registry-data:/var/lib/registry
+    restart: unless-stopped
+
+volumes:
+  registry-data:
+    name: registry-data
