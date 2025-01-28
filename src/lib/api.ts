@@ -5,7 +5,7 @@ type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
 const httpMethodHasBody = (method: HttpMethod) => method === 'POST' || method === 'PUT';
 
 export const makeRequest = async <I,O>(method: HttpMethod, path: string, params?: I): Promise<O> => {
-    const baseUrl = env('KUSTOS_REGISTRY_URL');
+    const baseUrl = env('VITE_KUSTOS_REGISTRY_URL');
     if (!httpMethodHasBody(method) && params) {
         path += `?${new URLSearchParams(params as Record<string, string>).toString()}`;
     }
