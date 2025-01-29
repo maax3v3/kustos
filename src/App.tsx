@@ -1,13 +1,16 @@
+import { BrowserRouter, Route, Routes } from 'react-router';
 import './App.css'
-import { useNeedsAuth } from './hooks/needs-auth';
+import HomePage from './components/pages/home-page';
+import LoginPage from './components/pages/login-page';
 
 function App() {
-    const needsAuth = useNeedsAuth();
-
     return (
-        <>
-            {needsAuth ? "needs auth" : "no needs auth"}
-        </>
+        <BrowserRouter>
+            <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/login" element={<LoginPage />} />
+            </Routes>
+        </BrowserRouter>
     )
 }
 
