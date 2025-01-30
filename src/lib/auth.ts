@@ -1,4 +1,4 @@
-import { makeRequest } from "./api"
+import { makeRequest } from "./http"
 
 export const registryNeedsAuth = (): Promise<boolean> => {
     return makeRequest('GET', '/v2')

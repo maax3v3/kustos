@@ -1,28 +1,16 @@
-import { env } from "./env"
+import { Catalog } from "@/types/catalog";
+import { makeRequest } from "./http";
+import { Manifest } from "@/types/manifest";
+import { TagsList } from "@/types/tags-list";
 
-type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
+export const getCatalog = () => {
+    return makeRequest<{}, Catalog>('GET', '/v2/catalog');
+}
 
-const httpMethodHasBody = (method: HttpMethod) => method === 'POST' || method === 'PUT';
+export const getTags = (repository: string) => {
+    return makeRequest<{}, TagsList>('GET', `/v2/${repository}/tags/list`);
+}
 
-export const makeRequest = async <I,O>(method: HttpMethod, path: string, params?: I): Promise<O> => {
-    const baseUrl = env('VITE_KUSTOS_REGISTRY_URL');
-    if (!httpMethodHasBody(method) && params) {
-        path += `?${new URLSearchParams(params as Record<string, string>).toString()}`;
-    }
-
-    return fetch(`${baseUrl}${path}`, {
-        method,
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: httpMethodHasBody(method) && params ? JSON.stringify(params) : undefined,
-    }).then(res => {
-        if (res.status === 401) {
-            throw new Error('Unauthorized');
-        }
-        if (!res.ok) {
-            throw new Error(`HTTP error: Status: ${res.status}`);
-        }
-        return res.json()
-    });
+export const getManifest = (repository: string, tag: string) => {
+    return makeRequest<{}, Manifest>('GET', `/v2/${repository}/manifests/${tag}`);
 }
