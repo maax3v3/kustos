@@ -4,7 +4,7 @@ import { Manifest } from "@/types/manifest";
 import { TagsList } from "@/types/tags-list";
 
 export const getCatalog = () => {
-    return makeRequest<{}, Catalog>('GET', '/v2/catalog');
+    return makeRequest<{}, Catalog>('GET', '/v2/_catalog');
 }
 
 export const getTags = (repository: string) => {
