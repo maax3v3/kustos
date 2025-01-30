@@ -5,9 +5,6 @@ services:
     environment:
       REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /var/lib/registry
       REGISTRY_HTTP_ADDR: 0.0.0.0:5000
-      # Disable TLS for local development
-      REGISTRY_HTTP_TLS_CERTIFICATE: ""
-      REGISTRY_HTTP_TLS_KEY: ""
       REGISTRY_STORAGE_DELETE_ENABLED: 'true'
     volumes:
       - registry-data:/var/lib/registry
