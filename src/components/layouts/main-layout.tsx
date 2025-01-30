@@ -5,9 +5,9 @@ import AppSidebar from "../app-sidebar";
 export default function MainLayout() {
     return (
 
-        <SidebarProvider>
-            <main className="flex w-full h-full">
-                <AppSidebar />
+        <SidebarProvider className="flex w-full h-full">
+            <AppSidebar />
+            <main className="grow">
                 <Outlet></Outlet>
             </main>
         </SidebarProvider>
