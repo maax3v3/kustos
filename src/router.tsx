@@ -9,6 +9,8 @@ export default function Router() {
             <Routes>
                 <Route path="/" element={<MainLayout />}>
                     <Route index element={<HomePage />} />
+                    <Route path="/repositories/:repository" element={<HomePage />} />
+                    <Route path="/repositories/:repository/tags/:tag" element={<HomePage />} />
                 </Route>
                 <Route path="/login" element={<LoginPage />} />
             </Routes>

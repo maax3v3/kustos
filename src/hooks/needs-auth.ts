@@ -10,6 +10,7 @@ export function useNeedsAuth() {
         onSuccess(data) {
             setNeedsAuth(data);
         },
+        staleTime: 1 * 60 * 1000,
     });
 
     return needsAuth;

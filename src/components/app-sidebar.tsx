@@ -12,17 +12,23 @@ import {
     SidebarMenuSub,
     SidebarMenuSubButton,
     SidebarMenuSubItem,
+    SidebarSeparator,
 } from "@/components/ui/sidebar";
+import { useNeedsAuth } from "@/hooks/needs-auth";
 import { getAllTags } from "@/lib/queries/get-all-tags";
+import { getOrgName, getRegistryHost } from "@/lib/registry-info";
 import { TagsList } from "@/types/tags-list";
-import { useState } from "react";
+import { BuildingIcon, ChevronRight, HomeIcon, LinkIcon, ListIcon, LockIcon, LockOpenIcon, TagIcon } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useQuery } from "react-query";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
-import { ChevronRight } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import { Link } from "react-router";
 
 export default function AppSidebar() {
     const [tagsLists, setTagsLists] = useState<TagsList[]>([]);
+    const needsAuth = useNeedsAuth();
 
     useQuery({
         queryKey: ['tags-lists'],
@@ -33,10 +39,70 @@ export default function AppSidebar() {
         staleTime: 1 * 60 * 1000,
     })
 
+    const registryHost = useMemo(() => getRegistryHost(), []);
+    const orgName = useMemo(() => getOrgName(), []);
+
     return (
         <Sidebar>
-            <SidebarHeader />
+            <SidebarHeader>
+                <SidebarGroup>
+                    <SidebarGroupContent className="flex items-center flex-col">
+                        <h1>Kustos</h1>
+                        <h2>Docker Registry UI</h2>
+                    </SidebarGroupContent>
+                </SidebarGroup>
+                <SidebarGroup>
+                    <SidebarGroupLabel>Registry</SidebarGroupLabel>
+                    <SidebarGroupContent>
+                        <SidebarMenu>
+                            <SidebarMenuItem className="flex px-2 gap-2 py-1">
+                                <BuildingIcon className="h-4 w-4" />
+                                <span>{orgName}</span>
+                            </SidebarMenuItem>
+                        </SidebarMenu>
+                        <SidebarMenu>
+                            <SidebarMenuItem className="flex px-2 gap-2 py-1">
+                                <LinkIcon className="h-4 w-4" />
+                                <span>{registryHost}</span>
+                            </SidebarMenuItem>
+                        </SidebarMenu>
+                        <SidebarMenu>
+                            <SidebarMenuItem className="flex px-2 gap-2 py-1">
+                                {
+                                    needsAuth ? (
+                                        <>
+                                            <LockIcon className="h-4 w-4" />
+                                            <span>auth enabled</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <LockOpenIcon className="h-4 w-4" />
+                                            <span>auth disabled</span>
+                                        </>
+                                    )
+                                }
+                            </SidebarMenuItem>
+                        </SidebarMenu>
+                    </SidebarGroupContent>
+                </SidebarGroup>
+            </SidebarHeader>
+            <SidebarSeparator />
             <SidebarContent>
+                <SidebarGroup>
+                    <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+                    <SidebarGroupContent>
+                        <SidebarMenu>
+                            <SidebarMenuItem className="flex">
+                                <SidebarMenuButton asChild>
+                                    <Link to="/">
+                                        <HomeIcon></HomeIcon>
+                                        <span>Home</span>
+                                    </Link>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        </SidebarMenu>
+                    </SidebarGroupContent>
+                </SidebarGroup>
                 <SidebarGroup>
                     <SidebarGroupLabel>Catalog</SidebarGroupLabel>
                     <SidebarGroupContent>
@@ -56,10 +122,21 @@ export default function AppSidebar() {
                                         </CollapsibleTrigger>
                                         <CollapsibleContent>
                                             <SidebarMenuSub>
+                                                <SidebarMenuSubItem>
+                                                    <SidebarMenuSubButton asChild>
+                                                        <Link to={`/repositories/${tagsList.name}`}>
+                                                            <ListIcon></ListIcon>
+                                                            <span>Index</span>
+                                                        </Link>
+                                                    </SidebarMenuSubButton>
+                                                </SidebarMenuSubItem>
                                                 {tagsList.tags.map(tag => (
                                                     <SidebarMenuSubItem key={tag}>
-                                                        <SidebarMenuSubButton>
-                                                            <span>{tag}</span>
+                                                        <SidebarMenuSubButton asChild>
+                                                            <Link to={`/repositories/${tagsList.name}/tags/${tag}`}>
+                                                                <TagIcon></TagIcon>
+                                                                <span>{tag}</span>
+                                                            </Link>
                                                         </SidebarMenuSubButton>
                                                     </SidebarMenuSubItem>
                                                 ))}
@@ -72,9 +149,25 @@ export default function AppSidebar() {
                     </SidebarGroupContent>
                 </SidebarGroup>
             </SidebarContent>
+            <SidebarSeparator />
             <SidebarFooter>
                 <SidebarMenu>
-                    <SidebarMenuItem className="flex justify-end">
+                    <SidebarMenuItem className="flex justify-between">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger className="flex items-center gap-2 text-sm">
+                                <LinkIcon className="h-4 w-4" />
+                                <span>Links</span>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                <DropdownMenuLabel>Related</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem>
+                                    <a href="https://github.com/maaxleq/kustos" target="_blank" rel="noopener noreferrer" className="w-full h-full">
+                                        Github
+                                    </a>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                         <ThemeToggle />
                     </SidebarMenuItem>
                 </SidebarMenu>
