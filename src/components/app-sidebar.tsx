@@ -19,6 +19,7 @@ import { useState } from "react";
 import { useQuery } from "react-query";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { ChevronRight } from "lucide-react";
+import { ThemeToggle } from "./theme-toggle";
 
 export default function AppSidebar() {
     const [tagsLists, setTagsLists] = useState<TagsList[]>([]);
@@ -29,6 +30,7 @@ export default function AppSidebar() {
         onSuccess(data) {
             setTagsLists(data);
         },
+        staleTime: 1 * 60 * 1000,
     })
 
     return (
@@ -70,7 +72,13 @@ export default function AppSidebar() {
                     </SidebarGroupContent>
                 </SidebarGroup>
             </SidebarContent>
-            <SidebarFooter />
+            <SidebarFooter>
+                <SidebarMenu>
+                    <SidebarMenuItem className="flex justify-end">
+                        <ThemeToggle />
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarFooter>
         </Sidebar>
     )
 }
