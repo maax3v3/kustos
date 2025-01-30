@@ -16,4 +16,10 @@ push_image() {
 # Nginx
 push_image "nginx" "1.23" "1.24" "1.25" "1.26" "1.27"
 
+# Redis
+push_image "redis"  "6.2" "7.2" "7.4"
+
+# Postgres
+push_image "postgres" "15.10" "16.6" "17.2"
+
 echo "Registry has been populated with images"
