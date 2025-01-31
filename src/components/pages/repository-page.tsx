@@ -1,5 +1,8 @@
+import { getManifestOfTag } from "@/lib/queries/get-manifest-of-tag";
+import { Manifest } from "@/types/manifest";
 import { TagsList } from "@/types/tags-list";
 import { useMemo } from "react";
+import { useQueries } from "react-query";
 import { Link, useOutletContext, useParams } from "react-router";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "../ui/breadcrumb";
 import { Separator } from "../ui/separator";
@@ -12,6 +15,23 @@ export default function RepositoryPage() {
     } = useOutletContext() as { tagsLists: TagsList[] };
 
     const tagsList = useMemo(() => tagsLists.find(tagsList => tagsList.name === params.repository), [tagsLists, params]);
+
+    const manifestsQueries = useQueries((tagsList?.tags ?? []).map(tag => {
+        return {
+            queryKey: ['manifest', tagsList?.name, tag],
+            queryFn: () => tagsList && getManifestOfTag(tagsList.name, tag),
+            staleTime: 1 * 60 * 1000,
+        };
+    }));
+
+    const manifestsOfTags = useMemo(() => {
+        return manifestsQueries.reduce((acc, manifestQuery) => {
+            if (manifestQuery.data) {
+                acc[manifestQuery.data.name] = manifestQuery.data;
+            }
+            return acc;
+        }, {} as Record<string, Manifest>);
+    }, [manifestsQueries]);
 
     return <div className="flex flex-col gap-4 h-full">
         <Breadcrumb>
