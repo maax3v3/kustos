@@ -26,3 +26,22 @@ export const registryAuthMethod = (): Promise<AuthMethod> => {
         return AuthMethod.None;
     });
 }
+
+export const validateBasicAuth = async (username: string, password: string): Promise<boolean> => {
+    const baseUrl = env('VITE_KUSTOS_REGISTRY_URL');
+    const credentials = btoa(`${username}:${password}`);
+
+    try {
+        const response = await fetch(`${baseUrl}/v2/`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Basic ${credentials}`,
+            },
+        });
+
+        // Consider 2xx and 3xx as successful
+        return response.status >= 200 && response.status < 400;
+    } catch (error) {
+        return false;
+    }
+}
