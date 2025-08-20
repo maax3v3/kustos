@@ -54,8 +54,32 @@ async function fetchManifestWithDigest(repo: string, reference: string): Promise
   mediaType: string;
 }> {
   const response = await makeRegistryRequest(`/v2/${repo}/manifests/${reference}`);
-  const manifest = await response.json() as AnyManifest;
-  const digest = response.headers.get('Docker-Content-Digest') || '';
+  const manifestText = await response.text();
+  const manifest = JSON.parse(manifestText) as AnyManifest;
+  
+  // Try multiple header names for digest (different registries use different headers)
+  let digest = response.headers.get('Docker-Content-Digest') || 
+               response.headers.get('docker-content-digest') ||
+               response.headers.get('Content-Digest') ||
+               response.headers.get('Digest') ||
+               '';
+  
+  // If no digest in headers, calculate it ourselves using SHA256
+  if (!digest && typeof crypto !== 'undefined' && crypto.subtle) {
+    try {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(manifestText);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      digest = `sha256:${hashHex}`;
+    } catch (error) {
+      console.warn('Failed to calculate manifest digest:', error);
+      // Fallback to a truncated version of the reference or config digest
+      digest = reference.startsWith('sha256:') ? reference : `sha256:${reference}`;
+    }
+  }
+  
   const mediaType = response.headers.get('Content-Type') || '';
 
   return { manifest, digest, mediaType };
