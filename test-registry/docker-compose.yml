@@ -6,8 +6,11 @@ services:
       REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /var/lib/registry
       REGISTRY_HTTP_ADDR: 0.0.0.0:5000
       REGISTRY_STORAGE_DELETE_ENABLED: 'true'
+      REGISTRY_AUTH_HTPASSWD_REALM: kustos
+      REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
     volumes:
       - registry-data:/var/lib/registry
+      - ./htpasswd:/auth/htpasswd
     restart: unless-stopped
   
   nginx:
