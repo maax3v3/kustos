@@ -7,7 +7,7 @@ services:
       REGISTRY_HTTP_ADDR: 0.0.0.0:5000
       REGISTRY_STORAGE_DELETE_ENABLED: 'true'
       REGISTRY_AUTH_HTPASSWD_REALM: kustos
-      REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
+      REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd # Default htpasswd credentials: kustos/kustos
     volumes:
       - registry-data:/var/lib/registry
       - ./htpasswd:/auth/htpasswd
