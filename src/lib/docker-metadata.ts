@@ -138,19 +138,26 @@ async function processManifestV2(
 
   // Extract platform info
   const platform: Platform = {
-    os: configData.os || 'linux',
-    architecture: configData.architecture || 'amd64'
+    os: configData.os,
+    architecture: configData.architecture
   };
 
   // Extract config info
   const config: ConfigBlob = {
     digest: manifest.config.digest,
+    size: manifest.config.size,
+    mediaType: manifest.config.mediaType,
     created: configData.created,
     env: configData.config?.Env,
     cmd: configData.config?.Cmd,
     labels: configData.config?.Labels,
     architecture: configData.architecture,
-    os: configData.os
+    os: configData.os,
+    workingDir: configData.config?.WorkingDir,
+    user: configData.config?.User,
+    exposedPorts: configData.config?.ExposedPorts,
+    volumes: configData.config?.Volumes,
+    entrypoint: configData.config?.Entrypoint
   };
 
   return {
@@ -160,7 +167,8 @@ async function processManifestV2(
     platform,
     layers,
     size,
-    config
+    config,
+    history: configData.history
   };
 }
 
@@ -228,7 +236,23 @@ async function processManifestV1(
     platform,
     layers,
     size,
-    config
+    config,
+    history: manifest.history?.map(entry => {
+      try {
+        const v1Compat = JSON.parse(entry.v1Compatibility);
+        return {
+          created: v1Compat.created,
+          created_by: v1Compat.container_config?.Cmd?.join(' '),
+          empty_layer: v1Compat.throwaway || false
+        };
+      } catch (e) {
+        return {
+          created: undefined,
+          created_by: undefined,
+          empty_layer: false
+        };
+      }
+    })
   };
 }
 

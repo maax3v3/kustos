@@ -14,22 +14,34 @@ export interface Layer {
 
 export interface ConfigBlob {
   digest: string;
+  size?: number;
+  mediaType?: string;
   created?: string;
   env?: string[];
   cmd?: string[];
   labels?: Record<string, string>;
   architecture?: string;
   os?: string;
+  workingDir?: string;
+  user?: string;
+  exposedPorts?: Record<string, {}>;
+  volumes?: Record<string, {}>;
+  entrypoint?: string[];
 }
 
 export interface NormalizedImageMetadata {
   digest: string;
+  size: number;
   mediaType: string;
   tag: string;
   platform: Platform;
-  layers: Layer[];
-  size: number;
   config: ConfigBlob;
+  layers: Layer[];
+  history?: Array<{
+    created?: string;
+    created_by?: string;
+    empty_layer?: boolean;
+  }>;
 }
 
 // Manifest List / OCI Index types
@@ -76,6 +88,11 @@ export interface DockerConfig {
     Env?: string[];
     Cmd?: string[];
     Labels?: Record<string, string>;
+    WorkingDir?: string;
+    User?: string;
+    ExposedPorts?: Record<string, {}>;
+    Volumes?: Record<string, {}>;
+    Entrypoint?: string[];
   };
   history?: Array<{
     created?: string;

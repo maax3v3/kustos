@@ -3,7 +3,26 @@ import { useImageMetadata } from '@/hooks/use-image-metadata';
 import { NormalizedImageMetadata } from '@/types/docker-metadata';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, RefreshCw, Package, HardDrive, Calendar, Terminal, Tag } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { 
+  Loader2, 
+  RefreshCw, 
+  Package, 
+  HardDrive, 
+  Calendar, 
+  Terminal, 
+  Tag, 
+  Layers,
+  Settings,
+  User,
+  FolderOpen,
+  Network,
+  History,
+  ChevronDown,
+  ChevronRight,
+  Info,
+  Database
+} from 'lucide-react';
 
 interface ImageMetadataProps {
   repository: string;
@@ -12,12 +31,25 @@ interface ImageMetadataProps {
 
 export function ImageMetadata({ repository, tag }: ImageMetadataProps) {
   const [selectedPlatformIndex, setSelectedPlatformIndex] = useState<number | null>(null);
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    layers: false,
+    history: false,
+    config: false,
+    advanced: false
+  });
   
   const { data, loading, error, refetch } = useImageMetadata({
     repository,
     tag,
     enabled: Boolean(repository && tag)
   });
+
+  const toggleSection = (section: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
 
   const formatBytes = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
@@ -116,6 +148,8 @@ export function ImageMetadata({ repository, tag }: ImageMetadataProps) {
                     formatBytes={formatBytes}
                     formatDate={formatDate}
                     showPlatform={data.length > 1 && selectedPlatformIndex === null}
+                    expandedSections={expandedSections}
+                    toggleSection={toggleSection}
                   />
                 ))}
               </div>
@@ -132,130 +166,309 @@ interface MetadataCardProps {
   formatBytes: (bytes: number) => string;
   formatDate: (date?: string) => string;
   showPlatform?: boolean;
+  expandedSections: Record<string, boolean>;
+  toggleSection: (section: string) => void;
 }
 
-function MetadataCard({ metadata, formatBytes, formatDate, showPlatform = false }: MetadataCardProps) {
+function MetadataCard({ metadata, formatBytes, formatDate, showPlatform = false, expandedSections, toggleSection }: MetadataCardProps) {
+  const ExpandableSection = ({ 
+    title, 
+    icon: Icon, 
+    sectionKey, 
+    children, 
+    count 
+  }: { 
+    title: string; 
+    icon: any; 
+    sectionKey: string; 
+    children: React.ReactNode; 
+    count?: number;
+  }) => (
+    <div className="space-y-2">
+      <button
+        onClick={() => toggleSection(sectionKey)}
+        className="flex items-center gap-2 w-full text-left hover:text-primary transition-colors"
+      >
+        <Icon className="h-4 w-4" />
+        <span className="font-medium text-sm">{title}</span>
+        {count !== undefined && (
+          <Badge variant="outline" className="text-xs">
+            {count}
+          </Badge>
+        )}
+        {expandedSections[sectionKey] ? (
+          <ChevronDown className="h-4 w-4 ml-auto" />
+        ) : (
+          <ChevronRight className="h-4 w-4 ml-auto" />
+        )}
+      </button>
+      {expandedSections[sectionKey] && (
+        <div className="ml-6 space-y-2">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="bg-card border rounded-lg border-l-4 border-l-primary">
-      <div className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Basic Info */}
-          <div className="space-y-3">
-            <h4 className="font-semibold text-lg">Basic Information</h4>
-            
-            {showPlatform && (
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">
-                  {metadata.platform.os}/{metadata.platform.architecture}
-                  {metadata.platform.variant && `/${metadata.platform.variant}`}
-                </Badge>
-              </div>
-            )}
+      <div className="p-6 space-y-6">
+        {/* Header with Platform Badge */}
+        {showPlatform && (
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-sm">
+              {metadata.platform.os}/{metadata.platform.architecture}
+              {metadata.platform.variant && `/${metadata.platform.variant}`}
+            </Badge>
+          </div>
+        )}
 
-            <div className="space-y-2">
+        {/* Overview Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Basic Information */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Info className="h-5 w-5 text-primary" />
+              <h4 className="font-semibold">Overview</h4>
+            </div>
+            
+            <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
                 <Tag className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">
-                  <strong>Digest:</strong> {metadata.digest.substring(0, 20)}...
-                </span>
+                <span><strong>Digest:</strong> {metadata.digest.substring(0, 12)}...</span>
               </div>
-
               <div className="flex items-center gap-2">
                 <HardDrive className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">
-                  <strong>Size:</strong> {formatBytes(metadata.size)}
-                </span>
+                <span><strong>Size:</strong> {formatBytes(metadata.size)}</span>
               </div>
-
               <div className="flex items-center gap-2">
                 <Package className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">
-                  <strong>Media Type:</strong> {metadata.mediaType}
-                </span>
+                <span><strong>Type:</strong> {metadata.mediaType.split('.').pop()}</span>
               </div>
-
               {metadata.config.created && (
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">
-                    <strong>Created:</strong> {formatDate(metadata.config.created)}
-                  </span>
+                  <span><strong>Created:</strong> {formatDate(metadata.config.created)}</span>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Config Info */}
+          {/* Config Blob Info */}
           <div className="space-y-3">
-            <h4 className="font-semibold text-lg">Configuration</h4>
+            <div className="flex items-center gap-2">
+              <Database className="h-5 w-5 text-primary" />
+              <h4 className="font-semibold">Config Blob</h4>
+            </div>
             
-            {metadata.config.env && metadata.config.env.length > 0 && (
-              <div>
-                <strong className="text-sm">Environment Variables:</strong>
-                <div className="mt-1 space-y-1">
-                  {metadata.config.env.slice(0, 5).map((env: string, index: number) => (
-                    <Badge key={index} variant="outline" className="text-xs">
-                      {env}
-                    </Badge>
-                  ))}
-                  {metadata.config.env.length > 5 && (
-                    <Badge variant="outline" className="text-xs">
-                      +{metadata.config.env.length - 5} more
-                    </Badge>
-                  )}
-                </div>
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center gap-2">
+                <Tag className="h-4 w-4 text-muted-foreground" />
+                <span><strong>Digest:</strong> {metadata.config.digest.substring(0, 12)}...</span>
               </div>
-            )}
+              {metadata.config.size && (
+                <div className="flex items-center gap-2">
+                  <HardDrive className="h-4 w-4 text-muted-foreground" />
+                  <span><strong>Size:</strong> {formatBytes(metadata.config.size)}</span>
+                </div>
+              )}
+              {metadata.config.mediaType && (
+                <div className="flex items-center gap-2">
+                  <Package className="h-4 w-4 text-muted-foreground" />
+                  <span><strong>Type:</strong> {metadata.config.mediaType.split('.').pop()}</span>
+                </div>
+              )}
+            </div>
+          </div>
 
-            {metadata.config.cmd && metadata.config.cmd.length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <Terminal className="h-4 w-4 text-muted-foreground" />
-                  <strong className="text-sm">Command:</strong>
-                </div>
-                <code className="text-xs bg-muted p-2 rounded block">
-                  {metadata.config.cmd.join(' ')}
-                </code>
-              </div>
-            )}
-
-            {metadata.config.labels && Object.keys(metadata.config.labels).length > 0 && (
-              <div>
-                <strong className="text-sm">Labels:</strong>
-                <div className="mt-1 space-y-1">
-                  {Object.entries(metadata.config.labels).slice(0, 3).map(([key, value]) => (
-                    <div key={key} className="text-xs">
-                      <Badge variant="outline">{key}</Badge>
-                      <span className="ml-1 text-muted-foreground">{value as string}</span>
-                    </div>
-                  ))}
-                  {Object.keys(metadata.config.labels).length > 3 && (
-                    <Badge variant="outline" className="text-xs">
-                      +{Object.keys(metadata.config.labels).length - 3} more labels
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            )}
+          {/* Platform Details */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Settings className="h-5 w-5 text-primary" />
+              <h4 className="font-semibold">Platform</h4>
+            </div>
+            
+            <div className="space-y-2 text-sm">
+              <div><strong>OS:</strong> {metadata.platform.os}</div>
+              <div><strong>Architecture:</strong> {metadata.platform.architecture}</div>
+              {metadata.platform.variant && (
+                <div><strong>Variant:</strong> {metadata.platform.variant}</div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Layers */}
-        <div className="mt-4 pt-4 border-t">
-          <h4 className="font-semibold text-lg mb-2">Layers ({metadata.layers.length})</h4>
-          <div className="space-y-1">
-            {metadata.layers.slice(0, 5).map((layer, index: number) => (
-              <div key={index} className="flex items-center justify-between text-sm bg-muted p-2 rounded">
-                <code className="text-xs">{layer.digest.substring(0, 20)}...</code>
-                <span>{formatBytes(layer.size)}</span>
+        <Separator />
+
+        {/* Expandable Sections */}
+        <div className="space-y-4">
+          {/* Runtime Configuration */}
+          <ExpandableSection
+            title="Runtime Configuration"
+            icon={Terminal}
+            sectionKey="config"
+          >
+            <div className="space-y-3">
+              {metadata.config.entrypoint && metadata.config.entrypoint.length > 0 && (
+                <div>
+                  <strong className="text-sm">Entrypoint:</strong>
+                  <code className="text-xs bg-muted p-2 rounded block mt-1">
+                    {metadata.config.entrypoint.join(' ')}
+                  </code>
+                </div>
+              )}
+              
+              {metadata.config.cmd && metadata.config.cmd.length > 0 && (
+                <div>
+                  <strong className="text-sm">Command:</strong>
+                  <code className="text-xs bg-muted p-2 rounded block mt-1">
+                    {metadata.config.cmd.join(' ')}
+                  </code>
+                </div>
+              )}
+
+              {metadata.config.workingDir && (
+                <div className="flex items-center gap-2">
+                  <FolderOpen className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm"><strong>Working Directory:</strong> {metadata.config.workingDir}</span>
+                </div>
+              )}
+
+              {metadata.config.user && (
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm"><strong>User:</strong> {metadata.config.user}</span>
+                </div>
+              )}
+
+              {metadata.config.exposedPorts && Object.keys(metadata.config.exposedPorts).length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Network className="h-4 w-4 text-muted-foreground" />
+                    <strong className="text-sm">Exposed Ports:</strong>
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {Object.keys(metadata.config.exposedPorts).map(port => (
+                      <Badge key={port} variant="outline" className="text-xs">
+                        {port}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {metadata.config.volumes && Object.keys(metadata.config.volumes).length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <HardDrive className="h-4 w-4 text-muted-foreground" />
+                    <strong className="text-sm">Volumes:</strong>
+                  </div>
+                  <div className="space-y-1">
+                    {Object.keys(metadata.config.volumes).map(volume => (
+                      <code key={volume} className="text-xs bg-muted p-1 rounded block">
+                        {volume}
+                      </code>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </ExpandableSection>
+
+          {/* Environment Variables */}
+          {metadata.config.env && metadata.config.env.length > 0 && (
+            <ExpandableSection
+              title="Environment Variables"
+              icon={Settings}
+              sectionKey="env"
+              count={metadata.config.env.length}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {metadata.config.env.map((env: string, index: number) => (
+                  <Badge key={index} variant="outline" className="text-xs justify-start">
+                    {env}
+                  </Badge>
+                ))}
               </div>
-            ))}
-            {metadata.layers.length > 5 && (
-              <div className="text-sm text-muted-foreground text-center py-2">
-                ... and {metadata.layers.length - 5} more layers
+            </ExpandableSection>
+          )}
+
+          {/* Labels */}
+          {metadata.config.labels && Object.keys(metadata.config.labels).length > 0 && (
+            <ExpandableSection
+              title="Labels"
+              icon={Tag}
+              sectionKey="labels"
+              count={Object.keys(metadata.config.labels).length}
+            >
+              <div className="space-y-2">
+                {Object.entries(metadata.config.labels).map(([key, value]) => (
+                  <div key={key} className="flex items-start gap-2 text-xs">
+                    <Badge variant="outline" className="shrink-0">{key}</Badge>
+                    <span className="text-muted-foreground break-all">{value as string}</span>
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
+            </ExpandableSection>
+          )}
+
+          {/* Build History */}
+          {metadata.history && metadata.history.length > 0 && (
+            <ExpandableSection
+              title="Build History"
+              icon={History}
+              sectionKey="history"
+              count={metadata.history.length}
+            >
+              <div className="space-y-2">
+                {metadata.history.map((entry, index: number) => (
+                  <div key={index} className="bg-muted p-3 rounded text-xs space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">Layer {index + 1}</span>
+                      {entry.created && (
+                        <span className="text-muted-foreground">{formatDate(entry.created)}</span>
+                      )}
+                    </div>
+                    {entry.created_by && (
+                      <div>
+                        <strong>Command:</strong>
+                        <code className="text-xs bg-background p-1 rounded block mt-1 break-all">
+                          {entry.created_by}
+                        </code>
+                      </div>
+                    )}
+                    {entry.empty_layer && (
+                      <Badge variant="outline" className="text-xs">
+                        Empty Layer
+                      </Badge>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </ExpandableSection>
+          )}
+
+          {/* Layers */}
+          <ExpandableSection
+            title="Image Layers"
+            icon={Layers}
+            sectionKey="layers"
+            count={metadata.layers.length}
+          >
+            <div className="space-y-2">
+              {metadata.layers.map((layer, index: number) => (
+                <div key={index} className="bg-muted p-3 rounded text-xs space-y-1">
+                  <div className="flex items-center justify-between">
+                    <code className="font-mono">{layer.digest.substring(0, 20)}...</code>
+                    <span className="font-medium">{formatBytes(layer.size)}</span>
+                  </div>
+                  <div className="text-muted-foreground">
+                    <strong>Type:</strong> {layer.mediaType.split('.').pop()}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ExpandableSection>
         </div>
       </div>
     </div>
