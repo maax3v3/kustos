@@ -14,7 +14,7 @@ import {
     SidebarMenuSubItem,
     SidebarSeparator,
 } from "@/components/ui/sidebar";
-import { useNeedsAuth } from "@/hooks/needs-auth";
+import { useAuthMethod } from "@/hooks/use-auth-method";
 import { getAllTags } from "@/lib/queries/get-all-tags";
 import { getOrgName, getRegistryHost } from "@/lib/registry-info";
 import { TagsList } from "@/types/tags-list";
@@ -25,10 +25,11 @@ import { ThemeToggle } from "./theme-toggle";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { Link } from "react-router";
+import { AuthMethod } from "@/lib/auth";
 
 export default function AppSidebar() {
     const [tagsLists, setTagsLists] = useState<TagsList[]>([]);
-    const needsAuth = useNeedsAuth();
+    const authMethod = useAuthMethod();
 
     useQuery({
         queryKey: ['tags-lists'],
@@ -69,15 +70,34 @@ export default function AppSidebar() {
                         <SidebarMenu>
                             <SidebarMenuItem className="flex px-2 gap-2 py-1">
                                 {
-                                    needsAuth ? (
-                                        <>
-                                            <LockIcon className="h-4 w-4" />
-                                            <span>auth enabled</span>
-                                        </>
-                                    ) : (
+                                    authMethod === AuthMethod.None && (
                                         <>
                                             <LockOpenIcon className="h-4 w-4" />
-                                            <span>auth disabled</span>
+                                            <span>Auth disabled</span>
+                                        </>
+                                    )
+                                }
+                                {
+                                    authMethod === AuthMethod.Basic && (
+                                        <>
+                                            <LockIcon className="h-4 w-4" />
+                                            <span>Basic auth</span>
+                                        </>
+                                    )
+                                }
+                                {
+                                    authMethod === AuthMethod.Bearer && (
+                                        <>
+                                            <LockIcon className="h-4 w-4" />
+                                            <span>Bearer auth</span>
+                                        </>
+                                    )
+                                }
+                                {
+                                    authMethod === AuthMethod.Unknown && (
+                                        <>
+                                            <LockIcon className="h-4 w-4" />
+                                            <span>Unknown auth method</span>
                                         </>
                                     )
                                 }
