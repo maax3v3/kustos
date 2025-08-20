@@ -34,24 +34,24 @@ export function ImageMetadata({ repository, tag }: ImageMetadataProps) {
 
   if (!repository || !tag) {
     return (
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
+      <div className="bg-card border rounded-lg p-6">
         <h3 className="text-lg font-semibold mb-2">Image Metadata</h3>
-        <p className="text-gray-600">Select a repository and tag to view metadata</p>
+        <p className="text-muted-foreground">Select a repository and tag to view metadata</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      <div className="bg-white border border-gray-200 rounded-lg">
-        <div className="border-b border-gray-200 p-6">
+      <div className="bg-card border rounded-lg">
+        <div className="border-b p-6">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <Package className="h-5 w-5" />
                 Image Metadata
               </h3>
-              <p className="text-gray-600 mt-1">
+              <p className="text-muted-foreground mt-1">
                 {repository}:{tag}
               </p>
             </div>
@@ -75,7 +75,7 @@ export function ImageMetadata({ repository, tag }: ImageMetadataProps) {
           )}
 
           {error && (
-            <div className="text-red-600 bg-red-50 p-4 rounded-md">
+            <div className="text-destructive bg-destructive/10 p-4 rounded-md">
               <strong>Error:</strong> {error}
             </div>
           )}
@@ -136,7 +136,7 @@ interface MetadataCardProps {
 
 function MetadataCard({ metadata, formatBytes, formatDate, showPlatform = false }: MetadataCardProps) {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg border-l-4 border-l-blue-500">
+    <div className="bg-card border rounded-lg border-l-4 border-l-primary">
       <div className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Basic Info */}
@@ -154,21 +154,21 @@ function MetadataCard({ metadata, formatBytes, formatDate, showPlatform = false 
 
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <Tag className="h-4 w-4 text-gray-500" />
+                <Tag className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm">
                   <strong>Digest:</strong> {metadata.digest.substring(0, 20)}...
                 </span>
               </div>
 
               <div className="flex items-center gap-2">
-                <HardDrive className="h-4 w-4 text-gray-500" />
+                <HardDrive className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm">
                   <strong>Size:</strong> {formatBytes(metadata.size)}
                 </span>
               </div>
 
               <div className="flex items-center gap-2">
-                <Package className="h-4 w-4 text-gray-500" />
+                <Package className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm">
                   <strong>Media Type:</strong> {metadata.mediaType}
                 </span>
@@ -176,7 +176,7 @@ function MetadataCard({ metadata, formatBytes, formatDate, showPlatform = false 
 
               {metadata.config.created && (
                 <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-gray-500" />
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">
                     <strong>Created:</strong> {formatDate(metadata.config.created)}
                   </span>
@@ -210,10 +210,10 @@ function MetadataCard({ metadata, formatBytes, formatDate, showPlatform = false 
             {metadata.config.cmd && metadata.config.cmd.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <Terminal className="h-4 w-4 text-gray-500" />
+                  <Terminal className="h-4 w-4 text-muted-foreground" />
                   <strong className="text-sm">Command:</strong>
                 </div>
-                <code className="text-xs bg-gray-100 p-2 rounded block">
+                <code className="text-xs bg-muted p-2 rounded block">
                   {metadata.config.cmd.join(' ')}
                 </code>
               </div>
@@ -226,7 +226,7 @@ function MetadataCard({ metadata, formatBytes, formatDate, showPlatform = false 
                   {Object.entries(metadata.config.labels).slice(0, 3).map(([key, value]) => (
                     <div key={key} className="text-xs">
                       <Badge variant="outline">{key}</Badge>
-                      <span className="ml-1 text-gray-600">{value as string}</span>
+                      <span className="ml-1 text-muted-foreground">{value as string}</span>
                     </div>
                   ))}
                   {Object.keys(metadata.config.labels).length > 3 && (
@@ -245,13 +245,13 @@ function MetadataCard({ metadata, formatBytes, formatDate, showPlatform = false 
           <h4 className="font-semibold text-lg mb-2">Layers ({metadata.layers.length})</h4>
           <div className="space-y-1">
             {metadata.layers.slice(0, 5).map((layer, index: number) => (
-              <div key={index} className="flex items-center justify-between text-sm bg-gray-50 p-2 rounded">
+              <div key={index} className="flex items-center justify-between text-sm bg-muted p-2 rounded">
                 <code className="text-xs">{layer.digest.substring(0, 20)}...</code>
                 <span>{formatBytes(layer.size)}</span>
               </div>
             ))}
             {metadata.layers.length > 5 && (
-              <div className="text-sm text-gray-500 text-center py-2">
+              <div className="text-sm text-muted-foreground text-center py-2">
                 ... and {metadata.layers.length - 5} more layers
               </div>
             )}
