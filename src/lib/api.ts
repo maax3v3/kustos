@@ -2,6 +2,8 @@ import { Catalog } from "@/types/catalog";
 import { makeRequest } from "./http";
 import { Manifest } from "@/types/manifest";
 import { TagsList } from "@/types/tags-list";
+import { fetchImageMetadata, fetchImageMetadataForPlatform } from "./docker-metadata";
+import { NormalizedImageMetadata, Platform } from "@/types/docker-metadata";
 
 export const getCatalog = () => {
     return makeRequest<{}, Catalog>('GET', '/v2/_catalog');
@@ -13,4 +15,17 @@ export const getTags = (repository: string) => {
 
 export const getManifest = (repository: string, tag: string) => {
     return makeRequest<{}, Manifest>('GET', `/v2/${repository}/manifests/${tag}`);
+}
+
+// New comprehensive metadata fetching functions
+export const getImageMetadata = async (repository: string, tag: string): Promise<NormalizedImageMetadata[]> => {
+    return fetchImageMetadata(repository, tag);
+}
+
+export const getImageMetadataForPlatform = async (
+    repository: string, 
+    tag: string, 
+    platform: Partial<Platform>
+): Promise<NormalizedImageMetadata | null> => {
+    return fetchImageMetadataForPlatform(repository, tag, platform);
 }
