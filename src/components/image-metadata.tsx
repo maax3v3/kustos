@@ -23,6 +23,7 @@ import {
     Info,
     Database
 } from 'lucide-react';
+import { TruncatedTextTooltip } from './ui/tooltip';
 
 interface ImageMetadataProps {
     repository: string;
@@ -235,7 +236,7 @@ function MetadataCard({ metadata, formatBytes, formatDate, showPlatform = false,
                         <div className="space-y-2 text-sm">
                             <div className="flex items-center gap-2">
                                 <Tag className="h-4 w-4 text-muted-foreground" />
-                                <span><strong>Digest:</strong> {metadata.digest.substring(0, 12)}...</span>
+                                <span><strong>Digest:</strong> <TruncatedTextTooltip text={metadata.digest} truncatedLength={16} /></span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <HardDrive className="h-4 w-4 text-muted-foreground" />
@@ -264,7 +265,7 @@ function MetadataCard({ metadata, formatBytes, formatDate, showPlatform = false,
                         <div className="space-y-2 text-sm">
                             <div className="flex items-center gap-2">
                                 <Tag className="h-4 w-4 text-muted-foreground" />
-                                <span><strong>Digest:</strong> {metadata.config.digest.substring(0, 12)}...</span>
+                                <span><strong>Digest:</strong> <TruncatedTextTooltip text={metadata.config.digest} truncatedLength={16} /></span>
                             </div>
                             {metadata.config.size && (
                                 <div className="flex items-center gap-2">

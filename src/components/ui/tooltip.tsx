@@ -25,4 +25,21 @@ const TooltipContent = React.forwardRef<
 ))
 TooltipContent.displayName = TooltipPrimitive.Content.displayName
 
-export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }
+function TruncatedTextTooltip({
+    text,
+    truncatedLength = 12
+}: {
+    text: string
+    truncatedLength?: number
+}) {
+    return (
+        <Tooltip>
+            <TooltipTrigger>{text.substring(0, truncatedLength)}...</TooltipTrigger>
+            <TooltipContent>
+                {text}
+            </TooltipContent>
+        </Tooltip>
+    )
+}
+
+export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider, TruncatedTextTooltip }
