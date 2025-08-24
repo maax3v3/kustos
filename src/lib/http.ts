@@ -10,7 +10,7 @@ const createBasicAuthHeader = (username: string, password: string): string => {
     return `Basic ${token}`;
 }
 
-export const makeRequestRaw = async <I>(method: HttpMethod, path: string, params?: I): Promise<Response> => {
+export const makeRequestRaw = async <I>(method: HttpMethod, path: string, params?: I, headers?: Record<string, string>): Promise<Response> => {
     const credentials = useAuthStore.getState().credentials;
     const baseUrl = env('VITE_KUSTOS_REGISTRY_URL');
     if (!httpMethodHasBody(method) && params) {
@@ -22,13 +22,14 @@ export const makeRequestRaw = async <I>(method: HttpMethod, path: string, params
         headers: {
             'Content-Type': 'application/json',
             'Authorization': credentials ? createBasicAuthHeader(credentials.username, credentials.password) : '',
+            ...headers
         },
         body: httpMethodHasBody(method) && params ? JSON.stringify(params) : undefined,
     });
 }
 
 export const makeRequest = async <I,O>(method: HttpMethod, path: string, params?: I): Promise<O> => {
-    return makeRequestRaw(method, path, params).then(res => {
+    return makeRequestRaw(method, path, params, {}).then(res => {
         if (res.status === 401) {
             throw new Error('Unauthorized');
         }
