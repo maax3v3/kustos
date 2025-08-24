@@ -28,7 +28,7 @@ export default function TagPage() {
                 </BreadcrumbItem>
             </BreadcrumbList>
         </Breadcrumb>
-        
+
         {/* Display comprehensive Docker image metadata */}
         {repository && tag && (
             <ImageMetadata repository={repository} tag={tag} />

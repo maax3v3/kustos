@@ -28,8 +28,8 @@ export const getLayerSize = async (repo: string, layerDigest: string): Promise<n
 }
 
 export const getImageMetadataForPlatform = async (
-    repository: string, 
-    tag: string, 
+    repository: string,
+    tag: string,
     platform: Partial<Platform>
 ): Promise<NormalizedImageMetadata | null> => {
     return fetchImageMetadataForPlatform(repository, tag, platform);
@@ -58,14 +58,14 @@ export const getManifestWithDigest = async (repo: string, reference: string): Pr
     });
     const manifestText = await response.text();
     const manifest = JSON.parse(manifestText) as AnyManifest;
-    
+
     // Try multiple header names for digest (different registries use different headers)
-    let digest = response.headers.get('Docker-Content-Digest') || 
-                 response.headers.get('docker-content-digest') ||
-                 response.headers.get('Content-Digest') ||
-                 response.headers.get('Digest') ||
-                 '';
-    
+    let digest = response.headers.get('Docker-Content-Digest') ||
+        response.headers.get('docker-content-digest') ||
+        response.headers.get('Content-Digest') ||
+        response.headers.get('Digest') ||
+        '';
+
     // If no digest in headers, calculate it ourselves using SHA256
     if (!digest && typeof crypto !== 'undefined' && crypto.subtle) {
         try {
@@ -81,7 +81,7 @@ export const getManifestWithDigest = async (repo: string, reference: string): Pr
             digest = reference.startsWith('sha256:') ? reference : `sha256:${reference}`;
         }
     }
-    
+
     const mediaType = response.headers.get('Content-Type') || '';
 
     return { manifest, digest, mediaType };

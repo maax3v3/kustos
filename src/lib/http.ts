@@ -23,7 +23,7 @@ export const makeRequestRaw = async <I>(method: HttpMethod, path: string, params
     });
 }
 
-export const makeRequest = async <I,O>(method: HttpMethod, path: string, params?: I): Promise<O> => {
+export const makeRequest = async <I, O>(method: HttpMethod, path: string, params?: I): Promise<O> => {
     return makeRequestRaw(method, path, params, {}).then(res => {
         if (res.status === 401) {
             throw new Error('Unauthorized');

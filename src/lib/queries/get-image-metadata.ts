@@ -6,8 +6,8 @@ export const getImageMetadataQuery = async (repository: string, tag: string): Pr
 }
 
 export const getImageMetadataForPlatformQuery = async (
-    repository: string, 
-    tag: string, 
+    repository: string,
+    tag: string,
     platform: Partial<Platform>
 ): Promise<NormalizedImageMetadata | null> => {
     return getImageMetadataForPlatform(repository, tag, platform);

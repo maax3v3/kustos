@@ -33,7 +33,7 @@ export default function HomePage() {
                                 {
                                     index !== tagsLists.length - 1 && (
                                         <>
-                                            <Separator/>
+                                            <Separator />
                                         </>
                                     )
                                 }
