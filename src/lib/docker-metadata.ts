@@ -1,3 +1,4 @@
+import { getLayerSize } from "./api";
 import { env } from "./env";
 import {
   AnyManifest,
@@ -91,24 +92,6 @@ async function fetchManifestWithDigest(repo: string, reference: string): Promise
 async function fetchConfigBlob(repo: string, configDigest: string): Promise<DockerConfig> {
   const response = await makeRegistryRequest(`/v2/${repo}/blobs/${configDigest}`);
   return response.json();
-}
-
-/**
- * Get layer size using HEAD request
- */
-async function getLayerSize(repo: string, layerDigest: string): Promise<number> {
-  const baseUrl = env('VITE_KUSTOS_REGISTRY_URL');
-  
-  const response = await fetch(`${baseUrl}/v2/${repo}/blobs/${layerDigest}`, {
-    method: 'HEAD',
-  });
-
-  if (!response.ok) {
-    return 0; // Return 0 if we can't get the size
-  }
-
-  const contentLength = response.headers.get('Content-Length');
-  return contentLength ? parseInt(contentLength, 10) : 0;
 }
 
 /**

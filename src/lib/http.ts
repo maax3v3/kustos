@@ -1,7 +1,7 @@
 import { env } from "./env"
 import { useAuthStore } from "../stores/auth-store"
 
-type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'HEAD';
 
 const httpMethodHasBody = (method: HttpMethod) => method === 'POST' || method === 'PUT';
 

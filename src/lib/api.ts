@@ -1,5 +1,5 @@
 import { Catalog } from "@/types/catalog";
-import { makeRequest } from "./http";
+import { makeRequest, makeRequestRaw } from "./http";
 import { Manifest } from "@/types/manifest";
 import { TagsList } from "@/types/tags-list";
 import { fetchImageMetadata, fetchImageMetadataForPlatform } from "./docker-metadata";
@@ -19,6 +19,12 @@ export const getManifest = (repository: string, tag: string) => {
 
 export const getImageMetadata = async (repository: string, tag: string): Promise<NormalizedImageMetadata[]> => {
     return fetchImageMetadata(repository, tag);
+}
+
+export const getLayerSize = async (repo: string, layerDigest: string): Promise<number> => {
+    return makeRequestRaw('HEAD', `/v2/${repo}/blobs/${layerDigest}`)
+        .then(res => parseInt(res.headers.get('Content-Length') || '0'))
+        .catch(() => 0);
 }
 
 export const getImageMetadataForPlatform = async (
