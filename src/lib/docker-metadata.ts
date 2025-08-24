@@ -1,11 +1,10 @@
-import { getLayerSize } from "./api";
-import { env } from "./env";
+import { getLayerSize, getManifestWithDigest, getConfigBlob } from "./api";
+
 import {
   AnyManifest,
   ManifestList,
   ManifestV2,
   ManifestV1,
-  DockerConfig,
   NormalizedImageMetadata,
   MEDIA_TYPES,
   Platform,
@@ -13,86 +12,13 @@ import {
   ConfigBlob
 } from "@/types/docker-metadata";
 
-// Accept header for all supported manifest types
-const MANIFEST_ACCEPT_HEADER = [
-  MEDIA_TYPES.MANIFEST_LIST_V2,
-  MEDIA_TYPES.MANIFEST_V2,
-  MEDIA_TYPES.OCI_INDEX,
-  MEDIA_TYPES.OCI_MANIFEST,
-  MEDIA_TYPES.MANIFEST_V1
-].join(',');
 
-/**
- * Make a request to the Docker registry with proper headers
- */
-async function makeRegistryRequest(path: string, acceptHeader?: string): Promise<Response> {
-  const baseUrl = env('VITE_KUSTOS_REGISTRY_URL');
-  
-  const response = await fetch(`${baseUrl}${path}`, {
-    method: 'GET',
-    headers: {
-      'Accept': acceptHeader || MANIFEST_ACCEPT_HEADER,
-      'Content-Type': 'application/json',
-    },
-  });
 
-  if (response.status === 401) {
-    throw new Error('Unauthorized');
-  }
-  if (!response.ok) {
-    throw new Error(`HTTP error: Status: ${response.status}`);
-  }
 
-  return response;
-}
 
-/**
- * Fetch manifest with digest information
- */
-async function fetchManifestWithDigest(repo: string, reference: string): Promise<{
-  manifest: AnyManifest;
-  digest: string;
-  mediaType: string;
-}> {
-  const response = await makeRegistryRequest(`/v2/${repo}/manifests/${reference}`);
-  const manifestText = await response.text();
-  const manifest = JSON.parse(manifestText) as AnyManifest;
-  
-  // Try multiple header names for digest (different registries use different headers)
-  let digest = response.headers.get('Docker-Content-Digest') || 
-               response.headers.get('docker-content-digest') ||
-               response.headers.get('Content-Digest') ||
-               response.headers.get('Digest') ||
-               '';
-  
-  // If no digest in headers, calculate it ourselves using SHA256
-  if (!digest && typeof crypto !== 'undefined' && crypto.subtle) {
-    try {
-      const encoder = new TextEncoder();
-      const data = encoder.encode(manifestText);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-      digest = `sha256:${hashHex}`;
-    } catch (error) {
-      console.warn('Failed to calculate manifest digest:', error);
-      // Fallback to a truncated version of the reference or config digest
-      digest = reference.startsWith('sha256:') ? reference : `sha256:${reference}`;
-    }
-  }
-  
-  const mediaType = response.headers.get('Content-Type') || '';
 
-  return { manifest, digest, mediaType };
-}
 
-/**
- * Fetch config blob for schema v2/OCI manifests
- */
-async function fetchConfigBlob(repo: string, configDigest: string): Promise<DockerConfig> {
-  const response = await makeRegistryRequest(`/v2/${repo}/blobs/${configDigest}`);
-  return response.json();
-}
+
 
 /**
  * Check if manifest is a manifest list or OCI index
@@ -131,7 +57,7 @@ async function processManifestV2(
   mediaType: string
 ): Promise<NormalizedImageMetadata> {
   // Fetch config blob
-  const configData = await fetchConfigBlob(repo, manifest.config.digest);
+  const configData = await getConfigBlob(repo, manifest.config.digest);
 
   // Process layers
   const layers: Layer[] = manifest.layers.map(layer => ({
@@ -267,7 +193,7 @@ async function processManifestV1(
  * Fetch complete metadata for a Docker image tag
  */
 export async function fetchImageMetadata(repo: string, tag: string): Promise<NormalizedImageMetadata[]> {
-  const { manifest, digest, mediaType } = await fetchManifestWithDigest(repo, tag);
+  const { manifest, digest, mediaType } = await getManifestWithDigest(repo, tag);
 
   // Handle manifest list (multi-arch)
   if (isManifestList(manifest, mediaType)) {
@@ -276,7 +202,7 @@ export async function fetchImageMetadata(repo: string, tag: string): Promise<Nor
     for (const entry of manifest.manifests) {
       try {
         const { manifest: subManifest, digest: subDigest, mediaType: subMediaType } = 
-          await fetchManifestWithDigest(repo, entry.digest);
+          await getManifestWithDigest(repo, entry.digest);
         
         let metadata: NormalizedImageMetadata;
         
