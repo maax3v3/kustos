@@ -9,12 +9,17 @@ interface AuthStore {
   credentials: AuthCredentials | null;
   setCredentials: (credentials: AuthCredentials) => void;
   clearCredentials: () => void;
+  getAuthHeader: () => string;
 }
 
 export const useAuthStore = create<AuthStore>()(
-    (set) => ({
+    (set, get) => ({
       credentials: null,
       setCredentials: (credentials) => set({ credentials }),
       clearCredentials: () => set({ credentials: null }),
+      getAuthHeader: () => {
+        const credentials = get().credentials;
+        return credentials ? `Basic ${btoa(`${credentials.username}:${credentials.password}`)}` : '';
+      },
     })
 );

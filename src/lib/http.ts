@@ -5,13 +5,8 @@ type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'HEAD';
 
 const httpMethodHasBody = (method: HttpMethod) => method === 'POST' || method === 'PUT';
 
-const createBasicAuthHeader = (username: string, password: string): string => {
-    const token = btoa(`${username}:${password}`);
-    return `Basic ${token}`;
-}
-
 export const makeRequestRaw = async <I>(method: HttpMethod, path: string, params?: I, headers?: Record<string, string>): Promise<Response> => {
-    const credentials = useAuthStore.getState().credentials;
+    const authHeader = useAuthStore.getState().getAuthHeader();
     const baseUrl = env('VITE_KUSTOS_REGISTRY_URL');
     if (!httpMethodHasBody(method) && params) {
         path += `?${new URLSearchParams(params as Record<string, string>).toString()}`;
@@ -21,7 +16,7 @@ export const makeRequestRaw = async <I>(method: HttpMethod, path: string, params
         method,
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': credentials ? createBasicAuthHeader(credentials.username, credentials.password) : '',
+            'Authorization': authHeader,
             ...headers
         },
         body: httpMethodHasBody(method) && params ? JSON.stringify(params) : undefined,
