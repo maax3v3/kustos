@@ -17,7 +17,6 @@ export const getManifest = (repository: string, tag: string) => {
     return makeRequest<{}, Manifest>('GET', `/v2/${repository}/manifests/${tag}`);
 }
 
-// New comprehensive metadata fetching functions
 export const getImageMetadata = async (repository: string, tag: string): Promise<NormalizedImageMetadata[]> => {
     return fetchImageMetadata(repository, tag);
 }
