@@ -1,9 +1,9 @@
-import { AuthMethod, registryAuthMethod } from "@/lib/auth";
-import { useState } from "react";
+import { registryAuthMethod } from "@/lib/auth";
+import { useAuthStore } from "@/stores/auth-method-store";
 import { useQuery } from "react-query";
 
 export function useAuthMethod() {
-    const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null);
+    const { authMethod, setAuthMethod } = useAuthStore();
     useQuery({
         queryKey: ['authMethod'],
         queryFn: () => registryAuthMethod(),
