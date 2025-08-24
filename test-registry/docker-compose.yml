@@ -1,0 +1,29 @@
+services:
+  registry:
+    image: registry:2
+    container_name: kustos-test-registry
+    environment:
+      REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /var/lib/registry
+      REGISTRY_HTTP_ADDR: 0.0.0.0:5000
+      REGISTRY_STORAGE_DELETE_ENABLED: 'true'
+      REGISTRY_AUTH_HTPASSWD_REALM: kustos
+      REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd # Default htpasswd credentials: kustos/kustos
+    volumes:
+      - registry-data:/var/lib/registry
+      - ./htpasswd:/auth/htpasswd
+    restart: unless-stopped
+  
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx.Dockerfile
+    container_name: kustos-test-registry-nginx
+    ports:
+      - "5000:80"
+    depends_on:
+      - registry
+    restart: unless-stopped
+
+volumes:
+  registry-data:
+    name: registry-data
